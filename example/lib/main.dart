@@ -22,8 +22,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const Chameleon(
-        child: SizedBox(),
+      body: Chameleon(
+        child: const SizedBox(),
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.print),
@@ -47,22 +47,13 @@ final class VirtualPrinter extends RequestSimulator<int> {
 
   @override
   Widget builder(context, handler) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ElevatedButton(
-          onPressed: () => handler.done(1),
-          child: const Text('case 1'),
-        ),
-        ElevatedButton(
-          onPressed: () => handler.done(2),
-          child: const Text('case 2'),
-        ),
-        ElevatedButton(
-          onPressed: () => handler.error(Exception('УПС')),
-          child: const Text('throw Exception'),
-        )
+    return ResponsePresetBar<int>(
+      presets: [
+        ResponseSuccessPreset(title: 'case 1', data: 1),
+        ResponseSuccessPreset(title: 'case 2', data: 2),
+        ResponseFailPreset(title: 'throw Exception', error: Exception('OOPS')),
       ],
+      handler: handler,
     );
   }
 }

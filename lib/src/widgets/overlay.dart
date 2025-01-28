@@ -4,12 +4,15 @@ import 'package:chameleon/src/core/event.dart';
 import 'package:chameleon/src/widgets/request_tabs.dart';
 import 'package:flutter/material.dart';
 
+import '../../chameleon.dart';
 import '../core/chameleon_scope.dart';
 
 class ChameleonOverlay {
+  final OverlayBuilder? builder;
+
   late OverlayEntry _overlayEntry;
 
-  ChameleonOverlay();
+  ChameleonOverlay({this.builder});
 
   void show(BuildContext context) {
     _overlayEntry = _createOverlay();
@@ -20,23 +23,33 @@ class ChameleonOverlay {
     _overlayEntry.remove();
   }
 
+  OverlayBuilder get _builder {
+    if (builder != null) {
+      return builder!;
+    }
+
+    return (context, child) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chameleon')),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: child,
+        ),
+      );
+    };
+  }
+
   OverlayEntry _createOverlay() {
     return OverlayEntry(
-      builder: (context) => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 96),
-        child: SizedBox.expand(
-          child: ClipRRect(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-            child: _OverlayContent(),
-          ),
-        ),
-      ),
+      builder: (context) => _OverlayContent(builder: _builder),
     );
   }
 }
 
 class _OverlayContent extends StatefulWidget {
-  const _OverlayContent({super.key});
+  final OverlayBuilder builder;
+
+  const _OverlayContent({required this.builder});
 
   @override
   State<_OverlayContent> createState() => _OverlayContentState();
@@ -68,15 +81,13 @@ class _OverlayContentState extends State<_OverlayContent> {
       return const SizedBox.shrink();
     }
 
-    return Material(
-      color: Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 96),
-        child: SizedBox.expand(
-          child: RequestTabs(
-            requests: _requests,
-            onDone: _onDone,
-          ),
+    return widget.builder(
+      context,
+      Material(
+        color: Colors.transparent,
+        child: RequestTabs(
+          requests: _requests,
+          onDone: _onDone,
         ),
       ),
     );
