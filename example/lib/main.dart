@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:chameleon/chameleon.dart';
 import 'package:flutter/material.dart';
 
@@ -16,20 +19,35 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final Stream<int> _stream = VirtualDice(name: 'Dice').stream();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Chameleon(
-        child: const SizedBox(),
+        child: StreamBuilder(
+          stream: _stream,
+          builder: (context, snap) {
+            if (snap.hasData) {
+              return Center(child: Text(snap.data!.toString()));
+            }
+            return const SizedBox();
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.print),
         onPressed: () async {
           try {
-            final printer = VirtualPrinter(name: 'Принтер');
+            const printer = VirtualPrinter(name: 'Принтер');
             final result = await printer.request();
             print(result);
           } catch (e, st) {
@@ -43,17 +61,75 @@ class HomePage extends StatelessWidget {
 }
 
 final class VirtualPrinter extends RequestSimulator<int> {
-  VirtualPrinter({required super.name});
+  const VirtualPrinter({required super.name});
 
   @override
   Widget builder(context, handler) {
-    return ResponsePresetBar<int>(
-      presets: [
-        ResponseSuccessPreset(title: 'case 1', data: 1),
-        ResponseSuccessPreset(title: 'case 2', data: 2),
-        ResponseFailPreset(title: 'throw Exception', error: Exception('OOPS')),
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: ResponsePresetBar<int>(
+            presets: [
+              ResponseSuccessPreset(title: 'case 1', data: 1),
+              ResponseSuccessPreset(title: 'case 2', data: 2),
+              ResponseFailPreset(
+                title: 'throw Exception',
+                error: Exception('OOPS'),
+              ),
+            ],
+            handler: handler,
+          ),
+        )
       ],
-      handler: handler,
+    );
+  }
+}
+
+final class VirtualDice extends StreamSimulator<int> {
+  VirtualDice({required super.name});
+
+  bool _randomMode = false;
+
+  Timer? _timer;
+
+  @override
+  Widget builder(context, handler) {
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: ElevatedButton(
+              onPressed: () {
+                _randomMode = !_randomMode;
+                (context as Element).markNeedsBuild();
+
+                if (_randomMode) {
+                  _timer = Timer.periodic(
+                    const Duration(seconds: 2),
+                    (_) {
+                      final number = 1 + Random().nextInt(5);
+                      handler.done(number);
+                    },
+                  );
+                } else {
+                  _timer?.cancel();
+                }
+              },
+              child: Text('Random mode: ${_randomMode ? 'on' : 'off'}')),
+        ),
+        SliverToBoxAdapter(
+          child: ResponsePresetBar<int>(
+            presets: [
+              ResponseSuccessPreset(title: 'Side 1', data: 1),
+              ResponseSuccessPreset(title: 'Side 2', data: 2),
+              ResponseSuccessPreset(title: 'Side 3', data: 3),
+              ResponseSuccessPreset(title: 'Side 4', data: 4),
+              ResponseSuccessPreset(title: 'Side 5', data: 5),
+              ResponseSuccessPreset(title: 'Side 6', data: 6),
+            ],
+            handler: handler,
+          ),
+        )
+      ],
     );
   }
 }

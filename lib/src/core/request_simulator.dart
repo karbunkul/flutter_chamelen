@@ -7,15 +7,6 @@ part of 'simulator.dart';
 abstract base class RequestSimulator<T extends Object> extends Simulator<T> {
   const RequestSimulator({required super.name});
 
-  /// Builds the simulator UI for interaction.
-  /// This method must be implemented by subclasses to define the UI that
-  /// enables users to interact with the simulator and send requests.
-  ///
-  /// - [context]: The [BuildContext] used for rendering the interface.
-  /// - [handler]: An instance of [ResponseHandler<T>] that provides callbacks
-  ///   for handling successful results and errors.
-  Widget builder(BuildContext context, ResponseHandler<T> handler);
-
   /// Sends a request and waits for a response of type [T].
   ///
   /// This method sends a request through the [ChameleonScope] and listens for

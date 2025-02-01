@@ -6,6 +6,7 @@ import 'package:chameleon/src/core/response_handler.dart';
 import 'package:flutter/widgets.dart';
 
 part 'request_simulator.dart';
+part 'stream_simulator.dart';
 
 /// Base interface for all simulators.
 ///
@@ -16,7 +17,7 @@ part 'request_simulator.dart';
 ///
 /// The `Simulator` interface is intended to be extended by specific simulators
 /// that define the behavior for processing requests and generating responses.
-interface class Simulator<T extends Object> {
+abstract interface class Simulator<T extends Object> {
   /// The name of the simulator.
   ///
   /// This field helps to identify the simulator instance.
@@ -27,28 +28,33 @@ interface class Simulator<T extends Object> {
   /// The [name] is used to uniquely identify the simulator.
   const Simulator({required this.name});
 
+  /// Builds the simulator UI for interaction.
+  /// This method must be implemented by subclasses to define the UI that
+  /// enables users to interact with the simulator and send requests.
+  ///
+  /// - [context]: The [BuildContext] used for rendering the interface.
+  /// - [handler]: An instance of [ResponseHandler<T>] that provides callbacks
+  ///   for handling successful results and errors.
+  Widget builder(BuildContext context, ResponseHandler<T> handler);
+
   ResponseHandler<T> createHandler(
     RequestEvent request,
     ValueChanged<ResponseEvent> onChanged,
   ) {
-    if (this is RequestSimulator<T>) {
-      return ResponseHandler<T>(
-        done: (value) => onChanged(
-          ResponseSuccessEvent<T>(
-            id: request.id,
-            data: value,
-          ),
+    return ResponseHandler<T>(
+      done: (value) => onChanged(
+        ResponseSuccessEvent<T>(
+          id: request.id,
+          data: value,
         ),
-        error: (err) => onChanged(
-          ResponseFailEvent(
-            id: request.id,
-            error: err,
-            stackTrace: StackTrace.current,
-          ),
+      ),
+      error: (err) => onChanged(
+        ResponseFailEvent(
+          id: request.id,
+          error: err,
+          stackTrace: StackTrace.current,
         ),
-      );
-    }
-
-    throw UnimplementedError();
+      ),
+    );
   }
 }

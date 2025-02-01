@@ -1,8 +1,8 @@
-import 'package:chameleon/chameleon.dart';
 import 'package:chameleon/src/core/event.dart';
 import 'package:flutter/material.dart';
 
 class RequestTabs extends StatefulWidget {
+  final VoidCallback onMinimize;
   final List<RequestEvent> requests;
   final ValueChanged<ResponseEvent> onDone;
 
@@ -10,6 +10,7 @@ class RequestTabs extends StatefulWidget {
     super.key,
     required this.requests,
     required this.onDone,
+    required this.onMinimize,
   });
 
   @override
@@ -27,32 +28,30 @@ class _RequestTabsState extends State<RequestTabs> {
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: widget.requests.length,
-      child: NestedScrollView(
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverToBoxAdapter(
-              child: TabBar(
-                tabs: _tabs,
-                isScrollable: true,
-              ),
-            ),
-          ];
-        },
-        body: Builder(builder: (context) {
-          return TabBarView(
-            children: widget.requests.map((e) {
-              if (e.simulator is RequestSimulator) {
-                final simulator = e.simulator as RequestSimulator;
-                return simulator.builder(
-                  context,
-                  e.simulator.createHandler(e, widget.onDone),
-                );
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: 'Minimize window',
+            onPressed: widget.onMinimize,
+            icon: const Icon(Icons.close),
+          ),
+          title: const Text('Chameleon'),
+          bottom: TabBar(tabs: _tabs, isScrollable: true),
+        ),
+        body: TabBarView(
+          children: widget.requests.map(
+            (e) {
+              final handler = e.simulator.createHandler(e, widget.onDone);
+              final content = e.simulator.builder(context, handler);
+
+              if (content is ScrollView || content is Scrollable) {
+                return content;
               }
 
-              return const SizedBox.shrink();
-            }).toList(),
-          );
-        }),
+              return SingleChildScrollView(child: content);
+            },
+          ).toList(),
+        ),
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:chameleon/src/core/response_handler.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 enum ResponseBehavior {
   success,

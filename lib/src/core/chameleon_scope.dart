@@ -20,6 +20,7 @@ class ChameleonScope {
 
   /// Internal [StreamController] to manage broadcast streams of [Event]s.
   final _controller = StreamController<Event>.broadcast();
+  final _requestNotifier = _RequestNotifier([]);
 
   /// Returns a filtered stream of events of type [T].
   ///
@@ -29,13 +30,6 @@ class ChameleonScope {
     return _controller.stream.where((event) => event is T).cast<T>();
   }
 
-  /// Stream of [RequestEvent]s.
-  ///
-  /// This stream emits events related to requests made by simulators.
-  Stream<RequestEvent> get requestStream {
-    return _filteredStream<RequestEvent>();
-  }
-
   /// Stream of [ResponseEvent]s.
   ///
   /// This stream emits events related to responses for specific requests.
@@ -43,15 +37,19 @@ class ChameleonScope {
     return _filteredStream<ResponseEvent>();
   }
 
+  ChangeNotifier get requestNotifier => _requestNotifier;
+  List<RequestEvent> get requests => List.unmodifiable(_requestNotifier.value);
+
   /// Sends a request event for the given [simulator].
   ///
   /// Generates a unique ID for the request and emits a [RequestEvent].
   /// Returns the created [RequestEvent] for tracking.
   ///
   /// - [simulator]: The simulator initiating the request.
-  RequestEvent request(RequestSimulator simulator) {
+  RequestEvent request(Simulator simulator) {
     final id = DateTime.now().microsecondsSinceEpoch;
     final event = RequestEvent(id: id, simulator: simulator);
+    _requestNotifier.add(event);
     _controller.add(event);
     return event;
   }
@@ -63,6 +61,33 @@ class ChameleonScope {
   ///
   /// - [event]: The response event to be emitted.
   void response(ResponseEvent event) {
+    _requestNotifier.remove(event);
     _controller.add(event);
+  }
+}
+
+final class _RequestNotifier extends ValueNotifier<List<RequestEvent>> {
+  _RequestNotifier(super.value);
+
+  void add(RequestEvent request) {
+    if (request.simulator is RequestSimulator) {
+      value.insert(0, request);
+    } else {
+      value.add(request);
+    }
+
+    notifyListeners();
+  }
+
+  void remove(ResponseEvent request) {
+    final reqIndex = value.indexWhere((r) => r.id == request.id);
+    if (reqIndex != -1) {
+      final request = value.elementAt(reqIndex);
+
+      if (request.simulator is RequestSimulator) {
+        value.removeAt(reqIndex);
+        notifyListeners();
+      }
+    }
   }
 }

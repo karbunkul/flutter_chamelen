@@ -11,10 +11,9 @@ typedef OverlayBuilder = Widget Function(BuildContext context, Widget child);
 class Chameleon extends StatefulWidget {
   /// The child widget to wrap.
   final Widget child;
-  final OverlayBuilder? builder;
 
   /// Creates a [Chameleon] instance with the provided [child].
-  const Chameleon({super.key, required this.child, this.builder});
+  const Chameleon({super.key, required this.child});
 
   @override
   State<Chameleon> createState() => _ChameleonState();
@@ -28,14 +27,16 @@ class _ChameleonState extends State<Chameleon> {
   void initState() {
     super.initState();
     // Ensure the overlay is displayed after the first frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _updateOverlay());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateOverlay();
+    });
   }
 
   void _updateOverlay() {
     if (mounted) {
       try {
         _overlay?.hide();
-        _overlay = ChameleonOverlay(builder: widget.builder);
+        _overlay = ChameleonOverlay();
         _overlay?.show(context);
       } catch (e, stackTrace) {
         // Handle errors gracefully.
@@ -45,7 +46,7 @@ class _ChameleonState extends State<Chameleon> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(context) => widget.child;
 
   @override
   void dispose() {

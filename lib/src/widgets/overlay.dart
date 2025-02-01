@@ -1,18 +1,11 @@
-import 'dart:async';
-
 import 'package:chameleon/src/core/event.dart';
 import 'package:chameleon/src/widgets/request_tabs.dart';
 import 'package:flutter/material.dart';
 
-import '../../chameleon.dart';
 import '../core/chameleon_scope.dart';
 
 class ChameleonOverlay {
-  final OverlayBuilder? builder;
-
   late OverlayEntry _overlayEntry;
-
-  ChameleonOverlay({this.builder});
 
   void show(BuildContext context) {
     _overlayEntry = _createOverlay();
@@ -23,86 +16,63 @@ class ChameleonOverlay {
     _overlayEntry.remove();
   }
 
-  OverlayBuilder get _builder {
-    if (builder != null) {
-      return builder!;
-    }
-
-    return (context, child) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Chameleon')),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: child,
-        ),
-      );
-    };
-  }
-
   OverlayEntry _createOverlay() {
     return OverlayEntry(
-      builder: (context) => _OverlayContent(builder: _builder),
+      builder: (context) => _OverlayContent(),
     );
   }
 }
 
 class _OverlayContent extends StatefulWidget {
-  final OverlayBuilder builder;
-
-  const _OverlayContent({required this.builder});
-
   @override
   State<_OverlayContent> createState() => _OverlayContentState();
 }
 
 class _OverlayContentState extends State<_OverlayContent> {
-  final List<RequestEvent> _requests = [];
-  StreamSubscription? _subscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _subscribe();
-  }
-
-  void _subscribe() {
-    _subscription = _scope.requestStream.listen((request) {
-      _requests.add(request);
-
-      if (mounted) {
-        setState(() {});
-      }
-    });
-  }
+  bool _minimize = false;
 
   @override
   Widget build(BuildContext context) {
-    if (_requests.isEmpty) {
+    if (_scope.requests.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return widget.builder(
-      context,
-      Material(
-        color: Colors.transparent,
-        child: RequestTabs(
-          requests: _requests,
-          onDone: _onDone,
-        ),
-      ),
-    );
-  }
+    if (_minimize) {
+      return Stack(
+        children: [
+          Positioned(
+            right: 50,
+            top: 50,
+            child: IconButton(
+              onPressed: () {
+                setState(() {
+                  _minimize = false;
+                });
+              },
+              icon: const Icon(
+                Icons.maximize_outlined,
+              ),
+            ),
+          )
+        ],
+      );
+    }
 
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
+    return AnimatedBuilder(
+      animation: _scope.requestNotifier,
+      builder: (context, child) {
+        return RequestTabs(
+          requests: _scope.requests,
+          onDone: _onDone,
+          onMinimize: () => setState(() => _minimize = true),
+        );
+      },
+    );
   }
 
   ChameleonScope get _scope => ChameleonScope();
 
-  void _onDone(value) {
+  void _onDone(ResponseEvent value) {
     _scope.response(value);
-    setState(() => _requests.removeWhere((e) => e.id == value.id));
   }
 }
