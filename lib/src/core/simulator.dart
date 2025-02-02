@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 
 part 'request_simulator.dart';
 part 'stream_simulator.dart';
+part 'trigger_simulator.dart';
 
 /// Base interface for all simulators.
 ///
@@ -55,6 +56,7 @@ abstract interface class Simulator<T extends Object> {
       done: (value, {bool? hide}) => onChanged(
         ResponseSuccessEvent<T>(
           id: request.id,
+          simulator: this,
           data: value,
           hide: hide,
         ),
@@ -62,6 +64,7 @@ abstract interface class Simulator<T extends Object> {
       error: (err, {bool? hide}) => onChanged(
         ResponseFailEvent(
           id: request.id,
+          simulator: this,
           error: err,
           stackTrace: StackTrace.current,
           hide: hide,

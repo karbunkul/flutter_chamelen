@@ -10,8 +10,11 @@ interface class Event {
   /// A unique identifier for the event.
   final int id;
 
+  /// The simulator associated with this request.
+  final Simulator simulator;
+
   /// Creates an [Event] with the specified [id].
-  const Event({required this.id});
+  const Event({required this.id, required this.simulator});
 }
 
 /// Represents a request event associated with a specific simulator.
@@ -22,11 +25,8 @@ interface class Event {
 @internal
 @immutable
 final class RequestEvent extends Event {
-  /// The simulator associated with this request.
-  final Simulator simulator;
-
   /// Creates a [RequestEvent] with the specified [id] and [simulator].
-  const RequestEvent({required super.id, required this.simulator});
+  const RequestEvent({required super.id, required super.simulator});
 }
 
 /// A base class for response events, extending the [Event] class.
@@ -38,7 +38,11 @@ final class ResponseEvent extends Event {
   final bool? hide;
 
   /// Creates a [ResponseEvent] with the specified [id].
-  const ResponseEvent({required super.id, this.hide});
+  const ResponseEvent({
+    required super.id,
+    required super.simulator,
+    this.hide,
+  });
 }
 
 /// Represents a successful response event with associated data.
@@ -52,6 +56,7 @@ final class ResponseSuccessEvent<T extends Object> extends ResponseEvent {
   /// Creates a [ResponseSuccessEvent] with the specified [id] and [data].
   const ResponseSuccessEvent({
     required super.id,
+    required super.simulator,
     required this.data,
     super.hide,
   });
@@ -72,6 +77,7 @@ final class ResponseFailEvent extends ResponseEvent {
   /// Creates a [ResponseFailEvent] with the specified [id], [error], and [stackTrace].
   const ResponseFailEvent({
     required super.id,
+    required super.simulator,
     required this.error,
     required this.stackTrace,
     super.hide,

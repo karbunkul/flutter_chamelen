@@ -33,6 +33,9 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Chameleon(
+        triggers: [
+          VirtualScanner(name: '2d Scanner'),
+        ],
         child: StreamBuilder(
           stream: _stream,
           builder: (context, snap) {
@@ -131,5 +134,25 @@ final class VirtualDice extends StreamSimulator<int> {
         )
       ],
     );
+  }
+}
+
+final class VirtualScanner extends TriggerSimulator<String> {
+  VirtualScanner({required super.name});
+
+  @override
+  Widget builder(context, handler) {
+    return TextField(
+      onSubmitted: (value) {
+        handler.done(value, hide: true);
+      },
+    );
+  }
+
+  @override
+  void onDispatch(BuildContext context, String data) {
+    ScaffoldMessenger.of(context)
+      ..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(data)));
   }
 }
