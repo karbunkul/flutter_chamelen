@@ -119,12 +119,12 @@ final class VirtualDice extends StreamSimulator<int> {
         SliverToBoxAdapter(
           child: ResponsePresetBar<int>(
             presets: [
-              ResponseSuccessPreset(title: 'Side 1', data: 1),
-              ResponseSuccessPreset(title: 'Side 2', data: 2),
-              ResponseSuccessPreset(title: 'Side 3', data: 3),
-              ResponseSuccessPreset(title: 'Side 4', data: 4),
-              ResponseSuccessPreset(title: 'Side 5', data: 5),
-              ResponseSuccessPreset(title: 'Side 6', data: 6),
+              ResponseSuccessPreset(title: 'Side 1', data: 1, hide: true),
+              ResponseSuccessPreset(title: 'Side 2', data: 2, hide: true),
+              ResponseSuccessPreset(title: 'Side 3', data: 3, hide: true),
+              ResponseSuccessPreset(title: 'Side 4', data: 4, hide: true),
+              ResponseSuccessPreset(title: 'Side 5', data: 5, hide: true),
+              ResponseSuccessPreset(title: 'Side 6', data: 6, hide: true),
             ],
             handler: handler,
           ),

@@ -10,49 +10,61 @@ part 'stream_simulator.dart';
 
 /// Base interface for all simulators.
 ///
-/// This interface provides a common structure for all simulator types,
-/// ensuring a consistent approach for implementing request-response workflows.
-/// Each simulator can be identified by its `name` and can be used to handle
-/// specific request/response operations in a uniform manner.
+/// This interface defines a common structure for all simulator types.
+/// It ensures a consistent way of implementing request-response workflows.
+/// Each simulator has a `name` for identification, and handles specific
+/// request/response operations in a uniform manner across the application.
 ///
-/// The `Simulator` interface is intended to be extended by specific simulators
-/// that define the behavior for processing requests and generating responses.
+/// Specific simulators should extend this interface and define their
+/// own behavior for processing requests and generating responses.
 abstract interface class Simulator<T extends Object> {
   /// The name of the simulator.
   ///
-  /// This field helps to identify the simulator instance.
+  /// This field is used to uniquely identify each simulator instance,
+  /// providing a way to differentiate between different simulators.
   final String name;
 
-  /// Creates a [Simulator] with the specified [name].
+  /// Creates a [Simulator] with the specified [name] and optional flags.
   ///
-  /// The [name] is used to uniquely identify the simulator.
+  /// The [name] is used to uniquely identify the simulator, and the
+  /// optional flags control the behavior of auto-closing and auto-hiding
+  /// after resolving a request.
   const Simulator({required this.name});
 
-  /// Builds the simulator UI for interaction.
-  /// This method must be implemented by subclasses to define the UI that
-  /// enables users to interact with the simulator and send requests.
+  /// Builds the user interface for the simulator interaction.
   ///
-  /// - [context]: The [BuildContext] used for rendering the interface.
-  /// - [handler]: An instance of [ResponseHandler<T>] that provides callbacks
-  ///   for handling successful results and errors.
+  /// This method must be implemented by subclasses to define the UI
+  /// that allows users to interact with the simulator and send requests.
+  ///
+  /// - [context]: The [BuildContext] used for rendering the UI.
+  /// - [handler]: An instance of [ResponseHandler<T>] used to handle
+  ///   successful results and errors from the simulator.
   Widget builder(BuildContext context, ResponseHandler<T> handler);
 
+  /// Creates a [ResponseHandler<T>] to handle responses for a specific request.
+  ///
+  /// - [request]: The [RequestEvent] associated with this handler.
+  /// - [onChanged]: A callback function that gets called when the response changes.
+  ///
+  /// This handler is used to handle success and error responses from the simulator.
   ResponseHandler<T> createHandler(
     RequestEvent request,
     ValueChanged<ResponseEvent> onChanged,
   ) {
     return ResponseHandler<T>(
-      done: (value) => onChanged(
+      done: (value, {bool? hide}) => onChanged(
         ResponseSuccessEvent<T>(
           id: request.id,
           data: value,
+          hide: hide,
         ),
       ),
-      error: (err) => onChanged(
+      error: (err, {bool? hide}) => onChanged(
         ResponseFailEvent(
           id: request.id,
           error: err,
           stackTrace: StackTrace.current,
+          hide: hide,
         ),
       ),
     );

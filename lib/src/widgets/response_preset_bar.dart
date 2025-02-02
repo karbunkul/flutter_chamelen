@@ -9,8 +9,9 @@ enum ResponseBehavior {
 interface class ResponsePreset<T extends Object> {
   final String title;
   final ResponseBehavior behavior;
+  final bool? hide;
 
-  ResponsePreset({required this.title, required this.behavior});
+  ResponsePreset({required this.title, required this.behavior, this.hide});
 }
 
 final class ResponseSuccessPreset<T extends Object> extends ResponsePreset<T> {
@@ -18,6 +19,7 @@ final class ResponseSuccessPreset<T extends Object> extends ResponsePreset<T> {
   ResponseSuccessPreset({
     required super.title,
     required this.data,
+    super.hide,
   }) : super(behavior: ResponseBehavior.success);
 }
 
@@ -26,6 +28,7 @@ final class ResponseFailPreset<T extends Object> extends ResponsePreset<T> {
   ResponseFailPreset({
     required super.title,
     required this.error,
+    super.hide,
   }) : super(behavior: ResponseBehavior.success);
 }
 
@@ -75,9 +78,9 @@ class _ResponsePresetBarState<T extends Object>
             onPressed: () {
               if (e is ResponseFailPreset<T>) {
                 final error = e as ResponseFailPreset;
-                widget.handler.error(error.error);
+                widget.handler.error(error.error, hide: error.hide);
               } else if (e is ResponseSuccessPreset<T>) {
-                widget.handler.done(e.data);
+                widget.handler.done(e.data, hide: e.hide);
               }
             },
             label: Text(e.title),

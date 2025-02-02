@@ -72,7 +72,11 @@ class _OverlayContentState extends State<_OverlayContent> {
 
   ChameleonScope get _scope => ChameleonScope();
 
-  void _onDone(ResponseEvent value) {
-    _scope.response(value);
+  void _onDone(ResponseEvent event) {
+    _scope.response(event);
+
+    if (event.hide == true && !_minimize) {
+      setState(() => _minimize = true);
+    }
   }
 }

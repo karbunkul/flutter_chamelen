@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:meta/meta.dart';
 
+typedef ResponseValueChanged<T> = void Function(T data, {bool? hide});
+
 /// A handler for managing responses and errors in a type-safe manner.
 ///
 /// This class is used to encapsulate callbacks for successful responses
@@ -21,10 +23,10 @@ import 'package:meta/meta.dart';
 @immutable
 final class ResponseHandler<T extends Object> {
   /// Callback for handling successful responses of type [T].
-  final ValueChanged<T> done;
+  final ResponseValueChanged<T> done;
 
   /// Callback for handling errors, receiving the error as an `Object`.
-  final ValueChanged<Object> error;
+  final ResponseValueChanged<Object> error;
 
   /// Creates a new [ResponseHandler] with the specified [done] and [error] callbacks.
   ///

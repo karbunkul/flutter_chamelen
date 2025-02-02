@@ -35,8 +35,10 @@ final class RequestEvent extends Event {
 /// types such as success and failure responses.
 @immutable
 final class ResponseEvent extends Event {
+  final bool? hide;
+
   /// Creates a [ResponseEvent] with the specified [id].
-  const ResponseEvent({required super.id});
+  const ResponseEvent({required super.id, this.hide});
 }
 
 /// Represents a successful response event with associated data.
@@ -48,7 +50,11 @@ final class ResponseSuccessEvent<T extends Object> extends ResponseEvent {
   final T data;
 
   /// Creates a [ResponseSuccessEvent] with the specified [id] and [data].
-  const ResponseSuccessEvent({required super.id, required this.data});
+  const ResponseSuccessEvent({
+    required super.id,
+    required this.data,
+    super.hide,
+  });
 }
 
 /// Represents a failed response event with error information.
@@ -68,5 +74,6 @@ final class ResponseFailEvent extends ResponseEvent {
     required super.id,
     required this.error,
     required this.stackTrace,
+    super.hide,
   });
 }
