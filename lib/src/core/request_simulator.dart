@@ -15,11 +15,24 @@ abstract base class RequestSimulator<T extends Object> extends Simulator<T> {
   ///
   /// Returns a [Future] that completes with the response data or an error.
   Future<T> request() async {
-    final completer = Completer<T>();
+    return switch (ChameleonScope().mode) {
+      ChameleonMode.test => _implTestModeStrategy(),
+      ChameleonMode.debug => _implDebugModeStrategy(),
+      ChameleonMode.release => _implReleaseModeStrategy(),
+    };
+  }
+
+  /// Implements the strategy for handling requests in **debug mode**.
+  ///
+  /// In this mode, the method listens to the [ChameleonScope] response stream
+  /// for matching responses. Once a matching response is found, the future
+  /// is completed with the corresponding data or error.
+  Future<T> _implDebugModeStrategy() {
     final scope = ChameleonScope();
     final request = scope.request(this);
 
     late final StreamSubscription subscription;
+    final completer = Completer<T>();
 
     // Listens for matching response events.
     subscription = scope.responseStream.where((e) {
@@ -27,7 +40,7 @@ abstract base class RequestSimulator<T extends Object> extends Simulator<T> {
     }).listen((value) {
       if (value is ResponseSuccessEvent) {
         // Completes the future with the response data on success.
-        completer.complete(value.data as FutureOr<T>);
+        completer.complete(value.data as T);
       } else if (value is ResponseFailEvent) {
         // Completes the future with an error and stack trace on failure.
         completer.completeError(value.error, value.stackTrace);
@@ -37,5 +50,34 @@ abstract base class RequestSimulator<T extends Object> extends Simulator<T> {
     });
 
     return completer.future;
+  }
+
+  /// Implements the strategy for handling requests in **release mode**.
+  ///
+  /// This mode is not yet implemented and throws an error if called.
+  Future<T> _implReleaseModeStrategy() {
+    throw UnimplementedError();
+  }
+
+  /// Implements the strategy for handling requests in **test mode**.
+  ///
+  /// In test mode, the method fetches a mocked response from the
+  /// [ChameleonScope] and completes the future with the mock data. If no mock
+  /// value is set, an error is thrown.
+  Future<T> _implTestModeStrategy() {
+    final scope = ChameleonScope();
+    final mockValue = scope.getMock(runtimeType);
+
+    if (mockValue != null) {
+      final completer = Completer<T>();
+      if (mockValue.$2 == MockType.value) {
+        completer.complete(mockValue.$1 as T);
+      } else {
+        completer.completeError(mockValue.$1);
+      }
+      return completer.future;
+    } else {
+      throw ArgumentError('Does`nt set value for Mock');
+    }
   }
 }

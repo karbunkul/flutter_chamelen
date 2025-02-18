@@ -1,5 +1,6 @@
 import 'package:chameleon/chameleon.dart';
 import 'package:chameleon/src/core/chameleon_scope.dart';
+import 'package:chameleon/src/core/event.dart';
 import 'package:flutter/widgets.dart';
 
 import 'overlay.dart';
@@ -15,7 +16,15 @@ typedef OverlayBuilder = Widget Function(BuildContext context, Widget child);
 /// This widget wraps a [child] widget and automatically manages the lifecycle
 /// of the [ChameleonOverlay], ensuring it is displayed and hidden at the appropriate times.
 class Chameleon extends StatefulWidget {
+  /// A set of [TriggerSimulator] instances that define interactive triggers for the Chameleon overlay.
+  ///
+  /// These triggers allow specific interactions to be simulated within the app.
   final Iterable<TriggerSimulator>? triggers;
+
+  /// The mode in which Chameleon operates.
+  ///
+  /// Defaults to [ChameleonMode.debug].
+  final ChameleonMode mode;
 
   /// The child widget that will be wrapped by the [Chameleon] and displayed in the UI.
   final Widget child;
@@ -24,6 +33,7 @@ class Chameleon extends StatefulWidget {
   const Chameleon({
     super.key,
     required this.child,
+    this.mode = ChameleonMode.debug,
     this.triggers,
   });
 
@@ -37,14 +47,17 @@ class _ChameleonState extends State<Chameleon> {
 
   @override
   void initState() {
+    _scope.setMode(widget.mode);
     super.initState();
 
     _initTriggers();
 
-    // After the first frame is rendered, update the overlay if needed.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateOverlay();
-    });
+    if (_scope.useOverlay) {
+      // After the first frame is rendered, update the overlay if needed.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _updateOverlay();
+      });
+    }
   }
 
   /// Updates the display of [ChameleonOverlay], hiding the old one and showing a new one.
@@ -76,14 +89,25 @@ class _ChameleonState extends State<Chameleon> {
     super.dispose();
   }
 
+  ChameleonScope get _scope => ChameleonScope();
+
   /// Initializes triggers if they were provided in the widget's constructor.
   /// Each trigger is requested and added to the [ChameleonScope].
   void _initTriggers() {
     if (widget.triggers?.isNotEmpty == true) {
-      final scope = ChameleonScope();
-      for (final trigger in widget.triggers!) {
-        scope.request(trigger); // Request the trigger for handling.
+      if (_scope.mode == ChameleonMode.test) {
+        _scope.setSimulateCallback(_onSimulate);
       }
+      for (final trigger in widget.triggers!) {
+        _scope.request(trigger); // Request the trigger for handling.
+      }
+    }
+  }
+
+  _onSimulate(RequestEvent event, Object data) {
+    if (event.simulator is TriggerSimulator) {
+      final triggerSimulator = event.simulator as TriggerSimulator;
+      triggerSimulator.onDispatch(context, data);
     }
   }
 }

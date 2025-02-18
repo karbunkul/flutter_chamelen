@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chameleon/chameleon.dart';
 import 'package:chameleon/src/core/chameleon_scope.dart';
 import 'package:chameleon/src/core/event.dart';
 import 'package:chameleon/src/core/response_handler.dart';
