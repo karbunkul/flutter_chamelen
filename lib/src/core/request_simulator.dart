@@ -37,14 +37,12 @@ abstract base class RequestSimulator<T extends Object> extends Simulator<T> {
     // Listens for matching response events.
     subscription = scope.responseStream.where((e) {
       return request.id == e.id;
-    }).listen((value) {
-      if (value is ResponseSuccessEvent) {
-        // Completes the future with the response data on success.
-        completer.complete(value.data as T);
-      } else if (value is ResponseFailEvent) {
-        // Completes the future with an error and stack trace on failure.
-        completer.completeError(value.error, value.stackTrace);
-      }
+    }).listen((event) {
+      event.when(onSuccess: (value) {
+        completer.complete(value as T);
+      }, onError: (error) {
+        completer.completeError(error);
+      });
       // Cancels the subscription after handling the response.
       subscription.cancel();
     });

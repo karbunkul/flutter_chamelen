@@ -56,19 +56,18 @@ abstract interface class Simulator<T extends Object> {
   ) {
     return ResponseHandler<T>(
       success: (value, {bool? hide}) => onChanged(
-        ResponseSuccessEvent<T>(
+        ResponseEvent<T>(
           id: request.id,
           simulator: this,
-          data: value,
+          snapshot: SimulatorSnapshot<T>.success(value),
           hide: hide,
         ),
       ),
       error: (err, {bool? hide}) => onChanged(
-        ResponseFailEvent(
+        ResponseEvent<T>(
           id: request.id,
           simulator: this,
-          error: err,
-          stackTrace: StackTrace.current,
+          snapshot: SimulatorSnapshot<T>.error(err),
           hide: hide,
         ),
       ),

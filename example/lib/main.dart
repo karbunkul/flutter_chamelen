@@ -33,7 +33,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Chameleon(
-        mode: ChameleonMode.test,
+        mode: ChameleonMode.debug,
         triggers: [
           VirtualScanner(name: '2d Scanner'),
         ],
@@ -51,13 +51,13 @@ class _HomePageState extends State<HomePage> {
         child: const Icon(Icons.print),
         onPressed: () async {
           try {
-            FakeSimulator.instance<String, VirtualScanner>().success('12345');
-            // FakeSimulator.instance<String, VirtualScanner>().error('12345');
-            // FakeSimulator.instance<int, VirtualPrinter>().success(12);
+            // FakeSimulator.instance<String, VirtualScanner>().success('12345');
+            FakeSimulator.instance<String, VirtualScanner>().error('12345');
+            FakeSimulator.instance<int, VirtualPrinter>().success(12);
             //
-            // const printer = VirtualPrinter(name: 'Принтер');
-            // final result = await printer.request();
-            // print(result);
+            const printer = VirtualPrinter(name: 'Принтер');
+            final result = await printer.request();
+            print(result);
           } catch (e, st) {
             print(e);
             print(st);

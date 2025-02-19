@@ -76,13 +76,8 @@ class _OverlayContentState extends State<_OverlayContent> {
   void _onDone(ResponseEvent event) {
     if (event.simulator is TriggerSimulator) {
       final simulator = event.simulator as TriggerSimulator;
-
-      if (event is ResponseSuccessEvent) {
-        simulator.onDispatch(context,
-            simulator.castSnapshot(SimulatorSnapshot.success(event.data)));
-      } else if (event is ResponseFailEvent) {
-        throw event.error;
-      }
+      final castedSnapshot = simulator.castSnapshot(event.snapshot);
+      simulator.onDispatch(context, castedSnapshot);
     } else {
       _scope.response(event);
     }

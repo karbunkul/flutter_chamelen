@@ -8,12 +8,12 @@ abstract base class StreamSimulator<T extends Object> extends Simulator<T> {
     final request = scope.request(this);
 
     return scope.responseStream.where((e) => request.id == e.id).map((s) {
-      if (s is ResponseSuccessEvent) {
-        return s.data as T;
+      if (s.isSuccess) {
+        return s.snapshot.data as T;
       }
 
-      if (s is ResponseFailEvent) {
-        throw s.error;
+      if (s.isError) {
+        throw s.snapshot.error;
       }
       throw UnimplementedError();
     });

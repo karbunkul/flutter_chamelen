@@ -29,57 +29,44 @@ final class RequestEvent extends Event {
   const RequestEvent({required super.id, required super.simulator});
 }
 
-/// A base class for response events, extending the [Event] class.
+/// A generic response event representing the outcome of a simulation request.
 ///
-/// This class is used as a foundation for specific response event
-/// types such as success and failure responses.
+/// This class encapsulates both successful and failed response scenarios
+/// using a [SimulatorSnapshot]. It provides utility methods to determine
+/// the response type and process it accordingly.
 @immutable
-final class ResponseEvent extends Event {
+final class ResponseEvent<T extends Object> extends Event {
+  /// Indicates whether the response should be hidden from external observers.
   final bool? hide;
 
-  /// Creates a [ResponseEvent] with the specified [id].
+  /// The snapshot containing either a successful response or an error.
+  final SimulatorSnapshot<T> snapshot;
+
+  /// Creates a [ResponseEvent] with the specified [id], [simulator], and [snapshot].
+  ///
+  /// The optional [hide] flag can be used to suppress visibility in certain cases.
   const ResponseEvent({
     required super.id,
     required super.simulator,
+    required this.snapshot,
     this.hide,
   });
-}
 
-/// Represents a successful response event with associated data.
-///
-/// This class encapsulates the success data of a specific type [T].
-@immutable
-final class ResponseSuccessEvent<T extends Object> extends ResponseEvent {
-  /// The data associated with the successful response.
-  final T data;
+  /// Returns `true` if the response contains an error.
+  bool get isError => snapshot.hasError;
 
-  /// Creates a [ResponseSuccessEvent] with the specified [id] and [data].
-  const ResponseSuccessEvent({
-    required super.id,
-    required super.simulator,
-    required this.data,
-    super.hide,
-  });
-}
+  /// Returns `true` if the response contains valid data.
+  bool get isSuccess => snapshot.hasData;
 
-/// Represents a failed response event with error information.
-///
-/// This class encapsulates the error object and stack trace for
-/// debugging and error handling purposes.
-@immutable
-final class ResponseFailEvent extends ResponseEvent {
-  /// The error that caused the response to fail.
-  final Object error;
-
-  /// The stack trace associated with the error.
-  final StackTrace stackTrace;
-
-  /// Creates a [ResponseFailEvent] with the specified [id], [error], and [stackTrace].
-  const ResponseFailEvent({
-    required super.id,
-    required super.simulator,
-    required this.error,
-    required this.stackTrace,
-    super.hide,
-  });
+  /// Handles the response based on its type.
+  ///
+  /// Calls [onSuccess] if the response contains valid data,
+  /// or [onError] if it contains an error.
+  R when<R>({
+    required R Function(T value) onSuccess,
+    required R Function(Object error) onError,
+  }) {
+    if (isSuccess) return onSuccess(snapshot.data);
+    return onError(snapshot.error);
+  }
 }
