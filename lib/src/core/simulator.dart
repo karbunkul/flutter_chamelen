@@ -5,6 +5,7 @@ import 'package:chameleon/src/core/chameleon_scope.dart';
 import 'package:chameleon/src/core/event.dart';
 import 'package:chameleon/src/core/response_handler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 
 part 'request_simulator.dart';
 part 'stream_simulator.dart';
@@ -72,5 +73,13 @@ abstract interface class Simulator<T extends Object> {
         ),
       ),
     );
+  }
+
+  @internal
+  @protected
+  SimulatorSnapshot<T> castSnapshot(SimulatorSnapshot snapshot) {
+    return snapshot.hasData
+        ? SimulatorSnapshot<T>.success(snapshot.data as T)
+        : SimulatorSnapshot<T>.error(snapshot.data);
   }
 }

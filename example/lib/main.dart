@@ -51,12 +51,13 @@ class _HomePageState extends State<HomePage> {
         child: const Icon(Icons.print),
         onPressed: () async {
           try {
-            FakeSimulator.instance<String, VirtualScanner>().done('12345');
-            FakeSimulator.instance<int, VirtualPrinter>().done(12);
-
-            const printer = VirtualPrinter(name: 'Принтер');
-            final result = await printer.request();
-            print(result);
+            FakeSimulator.instance<String, VirtualScanner>().success('12345');
+            // FakeSimulator.instance<String, VirtualScanner>().error('12345');
+            // FakeSimulator.instance<int, VirtualPrinter>().success(12);
+            //
+            // const printer = VirtualPrinter(name: 'Принтер');
+            // final result = await printer.request();
+            // print(result);
           } catch (e, st) {
             print(e);
             print(st);
@@ -168,9 +169,15 @@ final class VirtualScanner extends TriggerSimulator<String> {
   }
 
   @override
-  void onDispatch(BuildContext context, String data) {
-    ScaffoldMessenger.of(context)
-      ..removeCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(data)));
+  void onDispatch(BuildContext context, SimulatorSnapshot<String> snapshot) {
+    snapshot.when(onData: (value) {
+      ScaffoldMessenger.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(value)));
+    }, onError: (err) {
+      ScaffoldMessenger.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('Ошибка $err')));
+    });
   }
 }

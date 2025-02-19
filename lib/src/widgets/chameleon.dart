@@ -50,7 +50,7 @@ class _ChameleonState extends State<Chameleon> {
     _scope.setMode(widget.mode);
     super.initState();
 
-    _initTriggers();
+    _init();
 
     if (_scope.useOverlay) {
       // After the first frame is rendered, update the overlay if needed.
@@ -93,21 +93,21 @@ class _ChameleonState extends State<Chameleon> {
 
   /// Initializes triggers if they were provided in the widget's constructor.
   /// Each trigger is requested and added to the [ChameleonScope].
-  void _initTriggers() {
+  void _init() {
+    if (_scope.mode == ChameleonMode.test) {
+      _scope.setSimulateCallback(_onSimulate);
+    }
     if (widget.triggers?.isNotEmpty == true) {
-      if (_scope.mode == ChameleonMode.test) {
-        _scope.setSimulateCallback(_onSimulate);
-      }
       for (final trigger in widget.triggers!) {
         _scope.request(trigger); // Request the trigger for handling.
       }
     }
   }
 
-  _onSimulate(RequestEvent event, Object data) {
+  _onSimulate(RequestEvent event, SimulatorSnapshot snapshot) {
     if (event.simulator is TriggerSimulator) {
       final triggerSimulator = event.simulator as TriggerSimulator;
-      triggerSimulator.onDispatch(context, data);
+      triggerSimulator.onDispatch(context, snapshot);
     }
   }
 }

@@ -1,12 +1,14 @@
 import 'dart:async';
-import 'package:chameleon/chameleon.dart';
+import 'package:chameleon/src/core/simulator.dart';
+import 'package:chameleon/src/core/simulator_snapshot.dart';
+import 'package:chameleon/src/core/types.dart';
 import 'package:flutter/widgets.dart';
 
 import 'event.dart';
 
 enum MockType { value, error }
 
-typedef SimulateCallback = Function(RequestEvent, Object data);
+typedef SimulateCallback = Function(RequestEvent, SimulatorSnapshot snapshot);
 
 /// Singleton class that acts as a communication scope for sending and receiving events.
 /// It manages streams for both request and response events, enabling interaction
@@ -87,27 +89,39 @@ class ChameleonScope {
     _mode = mode;
   }
 
-  void setMock<T extends Object, S extends Simulator<T>>({
-    required MockType type,
-    required Object value,
-  }) {
-    final triggerIndex = _requestNotifier.value.indexWhere(
+  void simulate<T extends Object, S extends Simulator<T>>(
+      SimulatorSnapshot<T> snapshot) {
+    final eventIndex = _requestNotifier.value.indexWhere(
       (e) => e.simulator is S,
     );
-    if (triggerIndex != -1) {
-      final triggerEvent = _requestNotifier.value.elementAt(triggerIndex);
-      _simulateCallback?.call(triggerEvent, value);
+    if (eventIndex != -1) {
+      final event = _requestNotifier.value.elementAt(eventIndex);
+      _simulateCallback?.call(event, snapshot);
       return;
     }
-
-    final mockValue = getMock(S);
-    if (mockValue != null) {
-      _mocks.remove(S);
-    }
-
-    final newValue = type == MockType.value ? value as T : value;
-    _mocks.putIfAbsent(S, () => (newValue, type));
   }
+
+  // void setMock<T extends Object, S extends Simulator<T>>({
+  //   required MockType type,
+  //   required Object value,
+  // }) {
+  //   final triggerIndex = _requestNotifier.value.indexWhere(
+  //     (e) => e.simulator is S,
+  //   );
+  //   if (triggerIndex != -1) {
+  //     final triggerEvent = _requestNotifier.value.elementAt(triggerIndex);
+  //     _simulateCallback?.call(triggerEvent, value);
+  //     return;
+  //   }
+  //
+  //   final mockValue = getMock(S);
+  //   if (mockValue != null) {
+  //     _mocks.remove(S);
+  //   }
+  //
+  //   final newValue = type == MockType.value ? value as T : value;
+  //   _mocks.putIfAbsent(S, () => (newValue, type));
+  // }
 
   (Object, MockType)? getMock(Type runType) {
     if (_mocks.containsKey(runType)) {

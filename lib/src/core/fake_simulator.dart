@@ -1,4 +1,5 @@
 import 'package:chameleon/src/core/chameleon_scope.dart';
+import 'package:chameleon/src/core/simulator_snapshot.dart';
 import 'package:meta/meta.dart';
 
 import 'simulator.dart';
@@ -19,7 +20,7 @@ final class FakeSimulator<T extends Object, S extends Simulator<T>> {
   /// Simulates a successful completion of the simulator with the provided value.
   /// This is marked for testing purposes.
   @visibleForTesting
-  void done(T value) => this.done(value);
+  void success(T value) => this.success(value);
 
   /// Simulates an error in the simulator with the provided error object.
   /// This is marked for testing purposes.
@@ -33,14 +34,17 @@ final class _FakeSimulator<T extends Object, S extends Simulator<T>>
   @override
 
   /// Implements the mock mechanism for simulating a successful completion.
-  void done(T value) {
-    ChameleonScope().setMock<T, S>(type: MockType.value, value: value);
+  void success(T value) {
+    ChameleonScope().simulate(SimulatorSnapshot<T>.success(value));
+
+    // ChameleonScope().setMock<T, S>(type: MockType.value, value: value);
   }
 
   @override
 
   /// Implements the mock mechanism for simulating an error.
   void error(Object error) {
-    ChameleonScope().setMock<T, S>(type: MockType.error, value: error);
+    ChameleonScope().simulate(SimulatorSnapshot<T>.error(error));
+    // ChameleonScope().setMock<T, S>(type: MockType.error, value: error);
   }
 }
