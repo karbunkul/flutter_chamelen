@@ -55,7 +55,7 @@ abstract interface class Simulator<T extends Object> {
     ValueChanged<ResponseEvent> onChanged,
   ) {
     return ResponseHandler<T>(
-      done: (value, {bool? hide}) => onChanged(
+      success: (value, {bool? hide}) => onChanged(
         ResponseSuccessEvent<T>(
           id: request.id,
           simulator: this,

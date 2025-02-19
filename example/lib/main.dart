@@ -115,7 +115,7 @@ final class VirtualDice extends StreamSimulator<int> {
                     const Duration(seconds: 2),
                     (_) {
                       final number = 1 + Random().nextInt(5);
-                      handler.done(number);
+                      handler.success(number);
                     },
                   );
                 } else {
@@ -153,7 +153,7 @@ final class VirtualScanner extends TriggerSimulator<String> {
           padding: const EdgeInsets.all(8.0),
           child: TextField(
             onSubmitted: (value) {
-              handler.done(value, hide: true);
+              handler.success(value, hide: true);
             },
           ),
         ),

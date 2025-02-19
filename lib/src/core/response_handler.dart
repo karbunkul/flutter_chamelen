@@ -23,7 +23,7 @@ typedef ResponseValueChanged<T> = void Function(T data, {bool? hide});
 @immutable
 final class ResponseHandler<T extends Object> {
   /// Callback for handling successful responses of type [T].
-  final ResponseValueChanged<T> done;
+  final ResponseValueChanged<T> success;
 
   /// Callback for handling errors, receiving the error as an `Object`.
   final ResponseValueChanged<Object> error;
@@ -33,7 +33,7 @@ final class ResponseHandler<T extends Object> {
   /// - [done]: The callback for successful responses.
   /// - [error]: The callback for error handling.
   const ResponseHandler({
-    required this.done,
+    required this.success,
     required this.error,
   });
 }

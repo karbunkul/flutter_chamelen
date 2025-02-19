@@ -80,7 +80,7 @@ class _ResponsePresetBarState<T extends Object>
                 final error = e as ResponseFailPreset;
                 widget.handler.error(error.error, hide: error.hide);
               } else if (e is ResponseSuccessPreset<T>) {
-                widget.handler.done(e.data, hide: e.hide);
+                widget.handler.success(e.data, hide: e.hide);
               }
             },
             label: Text(e.title),
